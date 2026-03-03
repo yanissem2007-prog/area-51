@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700&family=Special+Elite&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  cursor: crosshair;
+}
+
+body {
+  @apply bg-vault font-body text-sand;
+  background-image: radial-gradient(circle at 20% 20%, rgba(194, 169, 122, 0.08), transparent 35%),
+    radial-gradient(circle at 80% 10%, rgba(58, 74, 63, 0.2), transparent 30%),
+    linear-gradient(180deg, #1a120b 0%, #2a1f14 50%, #231911 100%);
+}
+
+.archive-progress {
+  appearance: none;
+}
+
+.archive-progress::-webkit-progress-bar {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.archive-progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #3a4a3f 0%, #c2a97a 70%, #8b0000 100%);
+}
+
+.archive-progress::-moz-progress-bar {
+  background: linear-gradient(90deg, #3a4a3f 0%, #c2a97a 70%, #8b0000 100%);
+}
+
+.grain-overlay {
+  background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"%3E%3Cg fill="%23ffffff" fill-opacity="0.02"%3E%3Ccircle cx="18" cy="12" r="1"/%3E%3Ccircle cx="49" cy="77" r="1"/%3E%3Ccircle cx="95" cy="131" r="1"/%3E%3Ccircle cx="122" cy="44" r="1"/%3E%3Ccircle cx="151" cy="99" r="1"/%3E%3C/g%3E%3C/svg%3E');
+}
+
+.desert-hero {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)),
+    url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1800&q=80');
+}
+
+.desert-intro {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)),
+    url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1800&q=80');
+}
+
+.intro-bg-fade {
+  animation: introFade 4.8s ease forwards, slowZoom 6s ease forwards;
+}
+
+.glitch-red {
+  text-shadow: 1px 0 #8b0000, -1px 0 rgba(139, 0, 0, 0.7);
+  animation: glitchText 2.8s infinite;
+}
+
+@keyframes introFade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.75;
+  }
+}
+
+@keyframes slowZoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes glitchText {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-1px, 0.5px);
+  }
+  50% {
+    transform: translate(1px, -0.5px);
+  }
+  75% {
+    transform: translate(-1px, -0.5px);
+  }
+}
