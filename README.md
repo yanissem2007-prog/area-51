@@ -9,6 +9,16 @@ npm install
 npm run dev
 ```
 
+## Deploy To Vercel
+
+```bash
+npm install
+npm run build
+```
+
+Vercel should use the default Vite output directory: `dist`.
+Client-side routes are handled by `vercel.json`.
+
 ## Demo Auth
 
 - `USER` button in the header logs in as user.

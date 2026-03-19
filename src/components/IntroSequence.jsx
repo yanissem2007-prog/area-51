@@ -7,11 +7,11 @@ function IntroSequence({ onComplete }) {
 
   useEffect(() => {
     if (soundOn) {
-      playWarning();
-      startAmbient();
+      void playWarning();
+      void startAmbient();
     }
 
-    const timer = setTimeout(onComplete, 5200);
+    const timer = setTimeout(() => onComplete?.(), 5200);
     return () => clearTimeout(timer);
   }, [onComplete, playWarning, soundOn, startAmbient]);
 

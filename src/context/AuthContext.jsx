@@ -3,35 +3,57 @@ import { seedArticles } from '../data/articles';
 
 const AuthContext = createContext(null);
 
-const readStorage = (key, fallback) => {
+const hasWindow = typeof window !== 'undefined';
+
+const readStorage = (key, fallback, transform = JSON.parse) => {
+  if (!hasWindow) return fallback;
+
   try {
     const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
+    return value ? transform(value) : fallback;
   } catch {
     return fallback;
   }
 };
 
+const writeStorage = (key, value) => {
+  if (!hasWindow) return;
+
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage write failures so the UI remains usable.
+  }
+};
+
+const createId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
 export function AuthProvider({ children }) {
-  const [role, setRole] = useState(() => localStorage.getItem('a51_role') || 'guest');
+  const [role, setRole] = useState(() => readStorage('a51_role', 'guest', (value) => value));
   const [articles, setArticles] = useState(() => readStorage('a51_articles', seedArticles));
   const [gallery, setGallery] = useState(() => readStorage('a51_gallery', []));
   const [bookmarks, setBookmarks] = useState(() => readStorage('a51_bookmarks', []));
 
   useEffect(() => {
-    localStorage.setItem('a51_role', role);
+    writeStorage('a51_role', role);
   }, [role]);
 
   useEffect(() => {
-    localStorage.setItem('a51_articles', JSON.stringify(articles));
+    writeStorage('a51_articles', JSON.stringify(articles));
   }, [articles]);
 
   useEffect(() => {
-    localStorage.setItem('a51_gallery', JSON.stringify(gallery));
+    writeStorage('a51_gallery', JSON.stringify(gallery));
   }, [gallery]);
 
   useEffect(() => {
-    localStorage.setItem('a51_bookmarks', JSON.stringify(bookmarks));
+    writeStorage('a51_bookmarks', JSON.stringify(bookmarks));
   }, [bookmarks]);
 
   const loginAs = (nextRole) => setRole(nextRole);
@@ -39,7 +61,7 @@ export function AuthProvider({ children }) {
 
   const addArticle = (item) => {
     const next = {
-      id: crypto.randomUUID(),
+      id: createId(),
       title: item.title,
       year: item.year,
       summary: item.summary,
@@ -52,7 +74,7 @@ export function AuthProvider({ children }) {
 
   const addGalleryImage = (url) => {
     if (!url) return;
-    setGallery((prev) => [...prev, { id: crypto.randomUUID(), url }]);
+    setGallery((prev) => [...prev, { id: createId(), url }]);
   };
 
   const removeGalleryImage = (id) => setGallery((prev) => prev.filter((img) => img.id !== id));

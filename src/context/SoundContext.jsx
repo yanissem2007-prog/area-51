@@ -2,6 +2,11 @@ import { createContext, useContext, useMemo, useRef, useState } from 'react';
 
 const SoundContext = createContext(null);
 
+const getAudioContext = () => {
+  if (typeof window === 'undefined') return null;
+  return window.AudioContext || window.webkitAudioContext || null;
+};
+
 const createNoiseBuffer = (ctx) => {
   const bufferSize = ctx.sampleRate * 2;
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -17,7 +22,7 @@ export function SoundProvider({ children }) {
   const ambientRef = useRef(null);
 
   const ensureCtx = () => {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const Ctx = getAudioContext();
     if (!Ctx) return null;
     if (!ambientRef.current) {
       ambientRef.current = {
@@ -29,36 +34,52 @@ export function SoundProvider({ children }) {
     return ambientRef.current;
   };
 
+  const resumeAudio = async (ambient) => {
+    try {
+      await ambient.ctx.resume();
+      return ambient.ctx.state === 'running';
+    } catch {
+      return false;
+    }
+  };
+
   const startAmbient = async () => {
     const ambient = ensureCtx();
     if (!ambient || ambient.running) return;
 
-    await ambient.ctx.resume();
-    const noise = ambient.ctx.createBufferSource();
-    noise.buffer = createNoiseBuffer(ambient.ctx);
-    noise.loop = true;
+    const ready = await resumeAudio(ambient);
+    if (!ready) return;
 
-    const noiseFilter = ambient.ctx.createBiquadFilter();
-    noiseFilter.type = 'lowpass';
-    noiseFilter.frequency.value = 420;
+    try {
+      const noise = ambient.ctx.createBufferSource();
+      noise.buffer = createNoiseBuffer(ambient.ctx);
+      noise.loop = true;
 
-    const hum = ambient.ctx.createOscillator();
-    hum.type = 'sine';
-    hum.frequency.value = 64;
+      const noiseFilter = ambient.ctx.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.value = 420;
 
-    const gain = ambient.ctx.createGain();
-    gain.gain.value = 0.018;
+      const hum = ambient.ctx.createOscillator();
+      hum.type = 'sine';
+      hum.frequency.value = 64;
 
-    noise.connect(noiseFilter);
-    noiseFilter.connect(gain);
-    hum.connect(gain);
-    gain.connect(ambient.ctx.destination);
+      const gain = ambient.ctx.createGain();
+      gain.gain.value = 0.018;
 
-    noise.start();
-    hum.start();
+      noise.connect(noiseFilter);
+      noiseFilter.connect(gain);
+      hum.connect(gain);
+      gain.connect(ambient.ctx.destination);
 
-    ambient.running = true;
-    ambient.nodes = [noise, hum, gain];
+      noise.start();
+      hum.start();
+
+      ambient.running = true;
+      ambient.nodes = [noise, hum, gain];
+    } catch {
+      ambient.running = false;
+      ambient.nodes = [];
+    }
   };
 
   const stopAmbient = () => {
@@ -86,7 +107,9 @@ export function SoundProvider({ children }) {
     if (!soundOn) return;
     const ambient = ensureCtx();
     if (!ambient) return;
-    await ambient.ctx.resume();
+
+    const ready = await resumeAudio(ambient);
+    if (!ready) return;
 
     const gain = ambient.ctx.createGain();
     gain.gain.value = 0.03;

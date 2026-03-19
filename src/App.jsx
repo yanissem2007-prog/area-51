@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -13,96 +13,111 @@ import Home from './pages/Home';
 import Information from './pages/Information';
 import SavedArticles from './pages/SavedArticles';
 
+const hasWindow = typeof window !== 'undefined';
+
+const hasSeenIntro = () => {
+  if (!hasWindow) return false;
+
+  try {
+    return localStorage.getItem('a51_intro_seen') === '1';
+  } catch {
+    return false;
+  }
+};
+
+const markIntroSeen = () => {
+  if (!hasWindow) return;
+
+  try {
+    localStorage.setItem('a51_intro_seen', '1');
+  } catch {
+    // Ignore storage write failures so the app can still render.
+  }
+};
+
 function App() {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
-  const [showIntro, setShowIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(null);
 
   useEffect(() => {
-    const loadTimer = setTimeout(() => setLoading(false), 2200);
+    const loadTimer = setTimeout(() => {
+      setShowIntro(!hasSeenIntro());
+      setLoading(false);
+    }, 2200);
+
     return () => clearTimeout(loadTimer);
   }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      const seen = localStorage.getItem('a51_intro_seen');
-      setShowIntro(!seen);
-    }
-  }, [loading]);
-
   const onIntroComplete = () => {
-    localStorage.setItem('a51_intro_seen', '1');
+    markIntroSeen();
     setShowIntro(false);
   };
 
-  const page = useMemo(
-    () => (
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route element={<Layout />}>
-            <Route
-              path="/"
-              element={
-                <PageTransition>
-                  <Home />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/information"
-              element={
-                <PageTransition>
-                  <Information />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/documentary"
-              element={
-                <PageTransition>
-                  <Documentary />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/help"
-              element={
-                <PageTransition>
-                  <Help />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/saved"
-              element={
-                <ProtectedRoute allowedRoles={['user', 'admin']}>
-                  <PageTransition>
-                    <SavedArticles />
-                  </PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin-dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <PageTransition>
-                    <AdminDashboard />
-                  </PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
-      </AnimatePresence>
-    ),
-    [location]
-  );
-
-  if (loading) return <LoadingScreen />;
+  if (loading || showIntro === null) return <LoadingScreen />;
   if (showIntro) return <IntroSequence onComplete={onIntroComplete} />;
-  return page;
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route element={<Layout />}>
+          <Route
+            path="/"
+            element={
+              <PageTransition>
+                <Home />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/information"
+            element={
+              <PageTransition>
+                <Information />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/documentary"
+            element={
+              <PageTransition>
+                <Documentary />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/help"
+            element={
+              <PageTransition>
+                <Help />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/saved"
+            element={
+              <ProtectedRoute allowedRoles={['user', 'admin']}>
+                <PageTransition>
+                  <SavedArticles />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <PageTransition>
+                  <AdminDashboard />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </AnimatePresence>
+  );
 }
 
 export default App;

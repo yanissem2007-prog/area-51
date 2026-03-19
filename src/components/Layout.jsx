@@ -26,10 +26,15 @@ function Layout() {
   }, [scrollYProgress]);
 
   useEffect(() => {
-    const engage = () => startAmbient();
+    if (typeof window === 'undefined' || !soundOn) return undefined;
+
+    const engage = () => {
+      void startAmbient();
+    };
+
     window.addEventListener('pointerdown', engage, { once: true });
     return () => window.removeEventListener('pointerdown', engage);
-  }, [startAmbient]);
+  }, [soundOn, startAmbient]);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-vault text-sand">

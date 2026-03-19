@@ -1,4 +1,4 @@
-import React from 'react';
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ParallaxProvider } from 'react-scroll-parallax';
@@ -8,7 +8,7 @@ import { SoundProvider } from './context/SoundContext';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  <StrictMode>
     <BrowserRouter>
       <ParallaxProvider>
         <SoundProvider>
@@ -18,5 +18,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </SoundProvider>
       </ParallaxProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </StrictMode>
 );
